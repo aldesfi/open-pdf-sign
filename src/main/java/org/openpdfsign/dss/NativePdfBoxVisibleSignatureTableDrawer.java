@@ -6,6 +6,7 @@ import eu.europa.esig.dss.pdf.visible.ImageRotationUtils;
 import eu.europa.esig.dss.pdf.visible.ImageUtils;
 import eu.europa.esig.dss.pdf.visible.SignatureFieldDimensionAndPosition;
 import org.apache.pdfbox.io.IOUtils;
+import eu.europa.esig.dss.pades.SignatureFieldParameters;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -74,62 +75,66 @@ public class NativePdfBoxVisibleSignatureTableDrawer extends NativePdfBoxVisible
             java.util.logging.Logger.getLogger("org.apache.fontbox").setLevel(java.util.logging.Level.OFF);
 
             Table.TableBuilder myTableBuilder = Table.builder();
-
-            if (tableParameters.getImageOnly()) {
-                //image only as single-cell
-                myTableBuilder.addColumnsOfWidth(parameters.getFieldParameters().getWidth())
-                        .backgroundColor(Color.white)
-                        .borderWidth(0)
-                        .padding(2)
-                        .verticalAlignment(VerticalAlignment.TOP)
-                        .addRow(Row.builder()
-                                .add(ImageCell.builder().image(imageXObject).maxHeight(3 * 75)
-                                        .verticalAlignment(VerticalAlignment.MIDDLE).horizontalAlignment(HorizontalAlignment.CENTER).build())
-                                .build());
-            }
-            else {
-                //calculate dynamic width, if any
-                final float imageColumnWidth = 75;
-                final float labelColumnWidth = 90;
-                float tableWidth = parameters.getFieldParameters().getWidth();
-                tableWidth = Math.max((imageColumnWidth + labelColumnWidth + 50), tableWidth);
-
-                // Build the table
-                boolean hasHint = tableParameters.getHint() != null;
-                myTableBuilder
-                        .addColumnsOfWidth(imageColumnWidth, labelColumnWidth, (tableWidth - imageColumnWidth - labelColumnWidth))
-                        .backgroundColor(Color.WHITE)
-                        .borderWidth(0.75f)
-                        .padding(5)
-                        .fontSize(8)
-                        .verticalAlignment(VerticalAlignment.TOP)
-                        .addRow(Row.builder()
-                                .add(ImageCell.builder().image(imageXObject).maxHeight(75)
-                                        .verticalAlignment(VerticalAlignment.MIDDLE).horizontalAlignment(HorizontalAlignment.CENTER).rowSpan((hasHint ? 3 : 2)).build())
-                                .add(TextCell.builder().text(tableParameters.getLabelSignee()).font(PDType1Font.HELVETICA_BOLD).horizontalAlignment(HorizontalAlignment.RIGHT).build())
-                                .add(TextCell.builder().text(tableParameters.getSignaturString()).build())
-                                .build())
-                        .addRow(Row.builder()
-                                //.height(100f)
-                                .add(TextCell.builder().text(tableParameters.getLabelTimestamp()).font(PDType1Font.HELVETICA_BOLD).horizontalAlignment(HorizontalAlignment.RIGHT).build())
-                                .add(TextCell.builder().text(tableParameters.getSignatureDate()).build())
-                                .build());
-
-                if (hasHint) {
-                    myTableBuilder = myTableBuilder.addRow(Row.builder()
-                            //.height(100f)
-                            .add(TextCell.builder().text(tableParameters.getLabelHint()).font(PDType1Font.HELVETICA_BOLD).horizontalAlignment(HorizontalAlignment.RIGHT).build())
-                            .add(TextCell.builder().text(tableParameters.getHint()).build())
-                            .build());
-                }
-            }
-
-            Table myTable = myTableBuilder.build();
-
+            Table myTable = null;
+            SignatureFieldParameters signatureFieldParameters = parameters.getFieldParameters();
             SignatureFieldDimensionAndPosition dimensionAndPosition = buildSignatureFieldBox();
 
-            dimensionAndPosition.setBoxHeight(myTable.getHeight()); //
-            dimensionAndPosition.setBoxWidth(myTable.getWidth()); //
+            if(tableParameters.getImageTable()){
+                if(tableParameters.getImageOnly()) {
+                    // image only as single-cell
+                    myTableBuilder.addColumnsOfWidth(parameters.getFieldParameters().getWidth())
+                            // .backgroundColor(Color.white)
+                            .borderWidth(0)
+                            .padding(2)
+                            .verticalAlignment(VerticalAlignment.TOP)
+                            .addRow(Row.builder()
+                                    .add(ImageCell.builder().image(imageXObject).maxHeight(3 * 75)
+                                            .verticalAlignment(VerticalAlignment.MIDDLE).horizontalAlignment(HorizontalAlignment.CENTER).build())
+                                    .build());
+                }
+                else {
+                    //calculate dynamic width, if any
+                    final float imageColumnWidth = 75;
+                    final float labelColumnWidth = 90;
+                    float tableWidth = parameters.getFieldParameters().getWidth();
+                    tableWidth = Math.max((imageColumnWidth + labelColumnWidth + 50), tableWidth);
+
+                    // Build the table
+                    boolean hasHint = tableParameters.getHint() != null;
+                    myTableBuilder
+                            .addColumnsOfWidth(imageColumnWidth, labelColumnWidth, (tableWidth - imageColumnWidth - labelColumnWidth))
+                            .backgroundColor(Color.WHITE)
+                            .borderWidth(0.75f)
+                            .padding(5)
+                            .fontSize(8)
+                            .verticalAlignment(VerticalAlignment.TOP)
+                            .addRow(Row.builder()
+                                    .add(ImageCell.builder().image(imageXObject).maxHeight(75)
+                                            .verticalAlignment(VerticalAlignment.MIDDLE).horizontalAlignment(HorizontalAlignment.CENTER).rowSpan((hasHint ? 3 : 2)).build())
+                                    .add(TextCell.builder().text(tableParameters.getLabelSignee()).font(PDType1Font.HELVETICA_BOLD).horizontalAlignment(HorizontalAlignment.RIGHT).build())
+                                    .add(TextCell.builder().text(tableParameters.getSignaturString()).build())
+                                    .build())
+                            .addRow(Row.builder()
+                                    //.height(100f)
+                                    .add(TextCell.builder().text(tableParameters.getLabelTimestamp()).font(PDType1Font.HELVETICA_BOLD).horizontalAlignment(HorizontalAlignment.RIGHT).build())
+                                    .add(TextCell.builder().text(tableParameters.getSignatureDate()).build())
+                                    .build());
+
+                    if (hasHint) {
+                        myTableBuilder = myTableBuilder.addRow(Row.builder()
+                                //.height(100f)
+                                .add(TextCell.builder().text(tableParameters.getLabelHint()).font(PDType1Font.HELVETICA_BOLD).horizontalAlignment(HorizontalAlignment.RIGHT).build())
+                                .add(TextCell.builder().text(tableParameters.getHint()).build())
+                                .build());
+                    }
+                }
+                myTable = myTableBuilder.build();
+                dimensionAndPosition.setBoxHeight(myTable.getHeight()); //
+                dimensionAndPosition.setBoxWidth(myTable.getWidth()); //
+            } else {
+                dimensionAndPosition.setBoxHeight(signatureFieldParameters.getHeight()); //
+                dimensionAndPosition.setBoxWidth(signatureFieldParameters.getWidth()); //
+            }
             PDRectangle rectangle = getPdRectangle(dimensionAndPosition, page);
             widget.setRectangle(rectangle);
 
@@ -148,18 +153,20 @@ public class NativePdfBoxVisibleSignatureTableDrawer extends NativePdfBoxVisible
             widget.setAppearance(appearance);
 
             try (PDPageContentStream cs = new PDPageContentStream(doc, appearanceStream)) {
-                // Set up the drawer
-                TableDrawer tableDrawer = TableDrawer.builder()
+                // And go for it!
+                cs.saveGraphicsState();
+                if(tableParameters.getImageTable()){
+                    // Set up the drawer
+                    TableDrawer tableDrawer = TableDrawer.builder()
                         .contentStream(cs)
                         .startX(0) //start from left
                         .startY(myTable.getHeight()) //start from bottom because why not (in pdf)
                         .table(myTable)
                         .build();
-
-
-                // And go for it!
-                cs.saveGraphicsState();
-                tableDrawer.draw();
+                    tableDrawer.draw();
+                } else {
+                    cs.drawImage(imageXObject, 0, 0, signatureFieldParameters.getWidth(), signatureFieldParameters.getHeight());
+                }
                 cs.transform(Matrix.getRotateInstance(
                         ((double) 360 - ImageRotationUtils.getRotation(parameters.getRotation())), 400, 200));
 

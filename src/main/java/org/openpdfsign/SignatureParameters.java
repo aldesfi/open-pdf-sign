@@ -21,6 +21,10 @@ public class SignatureParameters {
     @JsonProperty("image-only")
     private Boolean imageOnly = false;
 
+    @Parameter(required = false, names={"--image-table"}, description = "Only use the image-table as signature content")
+    @JsonProperty("image-table")
+    private Boolean imageTable = false;
+
     @Parameter(required = false, names={"--page"}, description = "Page where the signature block should be placed. [-1] for last page")
     @JsonProperty(value = "page")
     private Integer page;
@@ -100,6 +104,11 @@ public class SignatureParameters {
     @Parameter(required = false, names={"--add-page"}, description = "add a blank page to the end of the document before signing")
     @JsonProperty("add-page")
     private Boolean addPage;
+
+    /* TAMBAHAN */
+    @Parameter(required = false, names={"--height"}, description = "height of the signature block in cm")
+    @JsonProperty("height")
+    private float height = 0;
 
     public static enum CertificationMode {
         NOT_CERTIFIED("not-certified"),

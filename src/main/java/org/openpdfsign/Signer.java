@@ -193,6 +193,7 @@ public class Signer {
             fieldParameters.setOriginX(params.getLeft() * POINTS_PER_MM * 10f);
             fieldParameters.setOriginY(params.getTop() * POINTS_PER_MM * 10f);
             fieldParameters.setWidth(params.getWidth() * POINTS_PER_MM * 10f);
+            fieldParameters.setHeight(params.getHeight() * POINTS_PER_MM * 10f);
 
             // Get the SignedInfo segment that need to be signed.
             // respect local timezone
@@ -216,6 +217,7 @@ public class Signer {
                 }
             }
             fieldParameters.setImageOnly(params.getImageOnly());
+            fieldParameters.setImageTable(params.getImageTable());
 
             signatureParameters.setImageParameters(imageParameters);
 

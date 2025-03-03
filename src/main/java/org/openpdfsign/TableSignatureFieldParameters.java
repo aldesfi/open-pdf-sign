@@ -14,4 +14,5 @@ public class TableSignatureFieldParameters extends SignatureFieldParameters  {
     private String labelSignee;
     private String labelTimestamp;
     private Boolean imageOnly;
+    private Boolean imageTable;
 }
